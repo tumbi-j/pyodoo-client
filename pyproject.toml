@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.24.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyodoo-client"
+version = "19.0.0"
+description = "Odoo JSON-2 API client for Odoo 19+"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "ArtIQ" }
+]
+keywords = ["odoo", "json2", "json", "api", "client"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+]
+dependencies = [
+  "requests>=2.31.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/tumbi-j/pyodoo-client"
+Documentation = "https://github.com/tumbi-j/pyodoo-client"
+Source = "https://github.com/tumbi-j/pyodoo-client"
+Issues = "https://github.com/tumbi-j/pyodoo-client/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pyodoo_client"]
