@@ -102,6 +102,13 @@ Includes wrappers:
 - Intended for Odoo 19+ using JSON-2 API.
 - RPC deprecation in Odoo 20 is accounted for by using `/json/2` transport.
 
+## Contributing
+
+- Open Issues for bugs and concrete feature requests.
+- Open Pull Requests for code/docs improvements.
+- For open-ended questions and ideas, use GitHub Discussions (enable in repo settings).
+- See `CONTRIBUTING.md` for workflow and expectations.
+
 ## Development
 
 ```bash
