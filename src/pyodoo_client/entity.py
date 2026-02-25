@@ -51,6 +51,14 @@ class OdooEntity:
                 yield key, getattr(self, key)
 
     def load(self, record_id: Any):
+        if isinstance(record_id, list):
+            if len(record_id) == 1:
+                record_id = record_id[0]
+            elif len(record_id) > 1:
+                raise ValueError(
+                    "Expected a single record id, got multiple ids. "
+                    "Pass one id or a one-item list."
+                )
         payload = {"ids": [int(record_id)]}
         result = self.__model.read(payload)
         data = dict(result[0]) if result else {}

@@ -8,6 +8,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from pyodoo_client import OdooClient
+from pyodoo_client.entity import OdooEntity
 from pyodoo_client.exceptions import OdooApiError
 
 
@@ -139,3 +140,73 @@ class OdooModelContextBehaviorTests(unittest.TestCase):
 
         self.assertEqual(scoped.context["allowed_company_ids"], [3, 5])
         self.assertEqual(scoped.context["company_id"], 3)
+
+
+class OdooModelCreatePayloadTests(unittest.TestCase):
+    def test_create_with_dict_returns_single_id_from_single_item_list(self):
+        session = DummySession(responses=[DummyResponse(200, {"uid": 1}), DummyResponse(200, [9])])
+        client = OdooClient(url="https://example.com", api_key="token", session=session)
+
+        model = client.model("account.move")
+        result = model.create({"name": "INV/000"})
+
+        self.assertEqual(result, 9)
+
+    def test_create_with_dict_uses_vals_list(self):
+        session = DummySession(responses=[DummyResponse(200, {"uid": 1}), DummyResponse(200, 9)])
+        client = OdooClient(url="https://example.com", api_key="token", session=session)
+
+        model = client.model("account.move")
+        model.create({"name": "INV/001"})
+
+        request_payload = session.calls[1]["json"]
+        self.assertEqual(request_payload["vals_list"], [{"name": "INV/001"}])
+
+    def test_create_with_single_tuple_dict_uses_vals_list(self):
+        session = DummySession(responses=[DummyResponse(200, {"uid": 1}), DummyResponse(200, 9)])
+        client = OdooClient(url="https://example.com", api_key="token", session=session)
+
+        model = client.model("account.move")
+        model.create(({"name": "INV/002"},))
+
+        request_payload = session.calls[1]["json"]
+        self.assertEqual(request_payload["vals_list"], [{"name": "INV/002"}])
+
+    def test_create_with_list_of_dicts_uses_vals_list(self):
+        session = DummySession(responses=[DummyResponse(200, {"uid": 1}), DummyResponse(200, [9, 10])])
+        client = OdooClient(url="https://example.com", api_key="token", session=session)
+
+        model = client.model("account.move")
+        model.create([{"name": "INV/003"}, {"name": "INV/004"}])
+
+        request_payload = session.calls[1]["json"]
+        self.assertEqual(
+            request_payload["vals_list"],
+            [{"name": "INV/003"}, {"name": "INV/004"}],
+        )
+
+
+class EntityLoadBehaviorTests(unittest.TestCase):
+    class _ModelStub:
+        def __init__(self):
+            self.last_payload = None
+
+        def fields(self):
+            return {}
+
+        def read(self, payload):
+            self.last_payload = payload
+            return [{"id": payload["ids"][0], "name": "Record"}]
+
+    def test_entity_load_accepts_single_item_list(self):
+        model = self._ModelStub()
+        entity = OdooEntity(model, [7])
+
+        self.assertEqual(entity.id, 7)
+        self.assertEqual(model.last_payload, {"ids": [7]})
+
+    def test_entity_load_raises_on_multi_item_list(self):
+        model = self._ModelStub()
+
+        with self.assertRaises(ValueError):
+            OdooEntity(model, [7, 8])

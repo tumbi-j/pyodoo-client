@@ -90,7 +90,7 @@ class OdooModel:
         return []
 
     def _build_payload(self, method: str, args: tuple, kwargs: dict):
-        if len(args) == 1 and isinstance(args[0], dict) and not kwargs:
+        if len(args) == 1 and isinstance(args[0], dict) and not kwargs and method.lower() != "create":
             return copy.deepcopy(args[0])
 
         payload = {}
@@ -112,10 +112,10 @@ class OdooModel:
                 if isinstance(first, tuple):
                     first = list(first)
                 if isinstance(first, dict):
-                    payload["vals"] = first
+                    payload["vals_list"] = [first]
                 elif isinstance(first, list):
                     if len(first) == 1 and isinstance(first[0], dict):
-                        payload["vals"] = first[0]
+                        payload["vals_list"] = first
                     elif first and all(isinstance(i, dict) for i in first):
                         payload["vals_list"] = first
                     else:
@@ -151,10 +151,11 @@ class OdooModel:
 
         if kwargs:
             payload.update(copy.deepcopy(kwargs))
-
         return payload
 
     def execute(self, method: str, *args, **kwargs):
+        lower_method = method.lower()
+        single_create_dict = lower_method == "create" and len(args) == 1 and isinstance(args[0], dict)
         default = self._default_method_return(method)
         try:
             payload = self._build_payload(method, args, kwargs)
@@ -177,6 +178,9 @@ class OdooModel:
             self.error = self.client.error
         else:
             self.error = None
+
+        if single_create_dict and isinstance(result, list) and len(result) == 1:
+            return result[0]
 
         return result
 

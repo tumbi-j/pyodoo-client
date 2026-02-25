@@ -2,6 +2,15 @@
 
 Thanks for your interest in improving `pyodoo-client`.
 
+## Version scope
+
+`pyodoo-client` targets Odoo JSON-2 (`/json/2`) workflows for Odoo 19+.
+
+If users ask about older RPC-based Odoo versions, direct them to `pyodoo-rpc-client`:
+
+- PyPI: https://pypi.org/project/pyodoo-rpc-client/
+- GitHub: https://github.com/tumbi-j/pyodoo-rpc-client
+
 ## How to engage
 
 - Use **Issues** for bugs and concrete feature requests.

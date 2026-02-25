@@ -19,6 +19,15 @@ Python client for Odoo JSON-2 API (`/json/2`) targeting Odoo 19+.
 pip install pyodoo-client
 ```
 
+## Important Version Guidance
+
+`pyodoo-client` is for Odoo JSON-2 (`/json/2`) workflows (Odoo 19+).
+
+If your project targets older Odoo versions that still use the classic RPC style, use `pyodoo-rpc-client` instead:
+
+- PyPI: https://pypi.org/project/pyodoo-rpc-client/
+- GitHub: https://github.com/tumbi-j/pyodoo-rpc-client
+
 ## Quick Start
 
 ```python
@@ -118,6 +127,9 @@ Includes wrappers:
 
 - Intended for Odoo 19+ using JSON-2 API.
 - RPC deprecation in Odoo 20 is accounted for by using `/json/2` transport.
+- For older RPC-based Odoo deployments, use `pyodoo-rpc-client`:
+  - PyPI: https://pypi.org/project/pyodoo-rpc-client/
+  - GitHub: https://github.com/tumbi-j/pyodoo-rpc-client
 
 ## Contributing
 
