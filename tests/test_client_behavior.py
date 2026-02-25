@@ -92,3 +92,50 @@ class OdooClientBehaviorTests(unittest.TestCase):
 
         self.assertEqual(result, default_value)
         self.assertIsInstance(client.error, OdooApiError)
+
+
+class OdooModelContextBehaviorTests(unittest.TestCase):
+    def test_with_context_accepts_kwargs(self):
+        session = DummySession(responses=[DummyResponse(200, {"uid": 1})])
+        client = OdooClient(url="https://example.com", api_key="token", session=session)
+
+        model = client.model("res.partner")
+        scoped = model.with_context(lang="fr_FR", tz="UTC")
+
+        self.assertEqual(model.context, {})
+        self.assertEqual(scoped.context, {"lang": "fr_FR", "tz": "UTC"})
+        self.assertIs(scoped.client, model.client)
+        self.assertEqual(scoped.model, model.model)
+
+    def test_with_context_merges_dict_and_kwargs(self):
+        session = DummySession(responses=[DummyResponse(200, {"uid": 1})])
+        client = OdooClient(url="https://example.com", api_key="token", session=session)
+
+        model = client.model("res.partner")
+        source_context = {"allowed_company_ids": [1], "lang": "en_US"}
+        scoped = model.with_context(source_context, lang="fr_FR", tz="UTC")
+        source_context["allowed_company_ids"].append(2)
+
+        self.assertEqual(scoped.context["allowed_company_ids"], [1])
+        self.assertEqual(scoped.context["lang"], "fr_FR")
+        self.assertEqual(scoped.context["tz"], "UTC")
+
+    def test_with_company_sets_allowed_company_ids_and_company_id(self):
+        session = DummySession(responses=[DummyResponse(200, {"uid": 1})])
+        client = OdooClient(url="https://example.com", api_key="token", session=session)
+
+        model = client.model("res.partner")
+        scoped = model.with_company(7)
+
+        self.assertEqual(scoped.context["allowed_company_ids"], [7])
+        self.assertEqual(scoped.context["company_id"], 7)
+
+    def test_with_company_accepts_multiple_company_ids(self):
+        session = DummySession(responses=[DummyResponse(200, {"uid": 1})])
+        client = OdooClient(url="https://example.com", api_key="token", session=session)
+
+        model = client.model("res.partner")
+        scoped = model.with_company([3, 5])
+
+        self.assertEqual(scoped.context["allowed_company_ids"], [3, 5])
+        self.assertEqual(scoped.context["company_id"], 3)

@@ -29,15 +29,26 @@ class OdooModel:
         self._debug = bool(debug)
         return self
 
-    def with_context(self, context: Optional[Dict[str, Any]] = None):
+    def with_context(self, context: Optional[Dict[str, Any]] = None, **kwargs):
         merged = copy.deepcopy(self.context)
         if context:
             merged.update(copy.deepcopy(context))
+        if kwargs:
+            merged.update(copy.deepcopy(kwargs))
         return self.__class__(
             client=self.client,
             model_name=self.model,
             context=merged,
             debug=self._debug,
+        )
+
+    def with_company(self, company: Any):
+        company_ids = self._normalize_ids(company)
+        if not company_ids:
+            return self.with_context()
+        return self.with_context(
+            allowed_company_ids=company_ids,
+            company_id=company_ids[0],
         )
 
     def _normalize_ids(self, ids: Any):

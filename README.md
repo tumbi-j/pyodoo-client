@@ -55,10 +55,27 @@ partners = odoo.model("res.partner").search_read({
 
 ### OdooModel
 
-- `with_context(dict)`
+- `with_context(context=None, **kwargs)`
+- `with_company(company)` (alias for setting company context)
 - `set_debug(bool)`
 - `execute(method, *args, **kwargs)`
 - CRUD helpers: `search`, `search_read`, `read`, `create`, `write`, `unlink`, `fields_get`
+
+Context helpers:
+
+```python
+partners = odoo.model("res.partner")
+
+# Dict style
+partners_en = partners.with_context({"lang": "en_US", "tz": "UTC"})
+
+# Kwargs style (equivalent)
+partners_fr = partners.with_context(lang="fr_FR", tz="Europe/Paris")
+
+# Company alias (maps to context keys)
+partners_c7 = partners.with_company(7)
+# -> context includes: {"allowed_company_ids": [7], "company_id": 7}
+```
 
 ### OdooEntity
 
