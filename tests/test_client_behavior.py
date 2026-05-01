@@ -42,6 +42,21 @@ class DummySession:
         )
         return self._responses.pop(0)
 
+    def request(self, method, url, json=None, data=None, files=None, headers=None, timeout=None, verify=None):
+        self.calls.append(
+            {
+                "method": method,
+                "url": url,
+                "json": json,
+                "data": data,
+                "files": files,
+                "headers": headers,
+                "timeout": timeout,
+                "verify": verify,
+            }
+        )
+        return self._responses.pop(0)
+
 
 class OdooClientBehaviorTests(unittest.TestCase):
     def test_call_model_merges_default_and_request_context(self):
@@ -93,6 +108,32 @@ class OdooClientBehaviorTests(unittest.TestCase):
 
         self.assertEqual(result, default_value)
         self.assertIsInstance(client.error, OdooApiError)
+
+    def test_call_web_passes_files_to_transport_adapter(self):
+        session = DummySession(
+            responses=[
+                DummyResponse(200, {"uid": 1}),
+                DummyResponse(200, {"ok": True}),
+            ]
+        )
+
+        client = OdooClient(
+            url="https://example.com",
+            api_key="token",
+            session=session,
+        )
+
+        file_payload = {"upload": ("a.txt", b"demo")}
+        result = client.call_web(
+            method="POST",
+            path="/web/test",
+            form_data={"a": "1"},
+            files=file_payload,
+        )
+
+        self.assertEqual(result, {"ok": True})
+        request_payload = session.calls[1]
+        self.assertEqual(request_payload["files"], file_payload)
 
 
 class OdooModelContextBehaviorTests(unittest.TestCase):

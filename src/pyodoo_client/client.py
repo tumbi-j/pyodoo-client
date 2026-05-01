@@ -5,6 +5,9 @@ from typing import Any, Dict, Optional, Union
 
 import requests
 
+from .transport.http_adapter import HttpAdapter
+from .transport.requests_adapter import RequestsHttpAdapter
+
 from .database import OdooDatabaseService
 from .exceptions import OdooApiError, OdooConfigError
 
@@ -21,6 +24,7 @@ class OdooClient:
         user_agent: str = "pyodoo-client",
         debug: bool = False,
         default_context: Optional[Dict[str, Any]] = None,
+        http_adapter: Optional[HttpAdapter] = None,
         session: Optional[requests.Session] = None,
     ):
         if not url:
@@ -35,16 +39,17 @@ class OdooClient:
         self.debug = bool(debug)
         self.default_context = copy.deepcopy(default_context or {})
 
-        self.session = session or requests.Session()
-        self.session.headers.update({
+        session = session or requests.Session()
+        session.headers.update({
             "User-Agent": self.user_agent,
             "Accept": "application/json",
         })
         if self.key:
-            self.session.headers.update({"Authorization": f"bearer {self.key}"})
+            session.headers.update({"Authorization": f"bearer {self.key}"})
         if self.db:
-            self.session.headers.update({"X-Odoo-Database": str(self.db)})
+            session.headers.update({"X-Odoo-Database": str(self.db)})
 
+        self.http = http_adapter or RequestsHttpAdapter(session=session)
         self.logged_in = False
         self.error = None
         self.uid = None
@@ -132,7 +137,7 @@ class OdooClient:
         url = f"{self.url}/{model_name}/{method}"
         data = self._merge_context(payload, context)
         try:
-            response = self.session.post(
+            response = self.http.post(
                 url,
                 json=data,
                 headers={"Content-Type": "application/json; charset=utf-8"},
@@ -179,7 +184,7 @@ class OdooClient:
             request_headers["Content-Type"] = "application/x-www-form-urlencoded"
 
         try:
-            response = self.session.request(
+            response = self.http.request(
                 method=method,
                 url=url,
                 json=json_data,

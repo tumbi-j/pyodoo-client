@@ -7,6 +7,7 @@ Python client for Odoo JSON-2 API (`/json/2`) targeting Odoo 19+.
 - JSON-2 model calls with named payloads.
 - ORM-like model access (`client.model("res.partner")`).
 - `OdooEntity` convenience wrapper (`save`, `delete`, `refresh`).
+- Pluggable HTTP transport adapters (default `requests`, optional Databricks serverless transport).
 - Context layering (`default_context`, `with_context`, per-call `context`).
 - Runtime `debug` mode toggle:
   - `debug=False`: returns safe defaults and stores errors.
@@ -49,6 +50,39 @@ partners = odoo.model("res.partner").search_read({
     "fields": ["name"],
 })
 ```
+
+## Databricks Serverless Transport (New)
+
+You can now run `pyodoo-client` from Databricks serverless notebooks by injecting a Databricks-backed transport adapter.
+
+```python
+from pyodoo_client import OdooClient
+from pyodoo_client.transport.databricks_adapter import DatabricksHttpAdapter
+
+# `spark` is available in Databricks notebooks
+http = DatabricksHttpAdapter(
+  spark=spark,
+  connection_name="my-odoo-connection",
+)
+
+odoo = OdooClient(
+  url="https://mycompany.example.com",
+  db="mycompany",
+  api_key="YOUR_API_KEY",
+  http_adapter=http,
+)
+
+partners = odoo.model("res.partner").search_read({
+  "domain": [["is_company", "=", True]],
+  "fields": ["name"],
+})
+```
+
+Notes:
+
+- The Databricks adapter uses Databricks SQL `http_request(...)` through your configured connection.
+- Multipart uploads (`files=...`) are not supported by the Databricks adapter.
+- For local scripts/services, continue using the default requests transport.
 
 ## API Overview
 
